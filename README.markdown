@@ -5,16 +5,18 @@ gfront is a frontend app for gollum, a git based ruby wiki library. It basically
 * I18n
 * DISQUS comments system
 
-1. Installation
 
-$ git clone git@github.com:sjoonk/gfront.git
-$ cd gfront
+### Installation
 
-2. Configuration
+	$ git clone git@github.com:sjoonk/gfront.git
+
+	$ cd gfront
+
+### Configuration
 
 Edit app.rb and change repo_path to your own git repository path.
 
-3. Run
+### Run
 
 That's it.
 

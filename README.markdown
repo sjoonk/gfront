@@ -1,15 +1,13 @@
 gfront is a frontend app for gollum, a git based ruby wiki library. It basically is a clone of gollum's frontend component, and enhanced some features:
 
 * TOC(Table of Contents) support
-* OpenId login
-* I18n
 * DISQUS comments system
-
+* OpenId login (todo)
+* I18n (todo)
 
 ### Installation
 
 	$ git clone git@github.com:sjoonk/gfront.git
-
 	$ cd gfront
 
 ### Configuration

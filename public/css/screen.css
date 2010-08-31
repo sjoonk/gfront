@@ -93,6 +93,11 @@ a.toc-top-link {
 	text-align: right;
 }
 
+input#openid_identifier {
+	background:url("/images/openid_bg.gif") no-repeat scroll 2px center transparent;
+	padding-left: 20px;
+}
+
 /*pre {
 	padding: 5px;
 	border: dotted 1px #aaa;
@@ -109,8 +114,8 @@ a.toc-top-link {
 	font-size: 10pt;
 	width: 200px;
 	padding: 10px 10px 10px 20px;
-	background: #efffb1;
-	border: solid 1px #ccd136;
+	background: #eee; /* #efffb1; */
+	border: solid 1px #bbb; /*#ccd136; */
 	margin: 0 0 10px 15px;
 }
 

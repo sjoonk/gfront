@@ -1,20 +1,34 @@
 require 'rubygems'
-require 'sinatra'
+require 'sinatra/base'
 require 'gollum'
 require 'mustache/sinatra'
+require 'rack/openid'
+require 'hashie/mash'
 
 class App < Sinatra::Base
   register Mustache::Sinatra
   require 'views/layout'
   require 'views/editable'
 
+  # If you need to set additional parameters for sessions, like expiration date, 
+  # use Rack::Session::Cookie directly instead of enable :sessions
+  # enable :sessions
+
+  # Session needs to be before Rack::OpenID
+  use Rack::Session::Cookie
+  use Rack::OpenID
+
   dir = File.dirname(File.expand_path(__FILE__))
 
   # Set your own git repository path here
-  set :repo_path, "YOUR_REPO_PATH" 
-  
+  # set :repo_path, "YOUR_REPO_PATH" 
+  set :repo_path, "/Users/coti22/Wikis/my-gollum-repo"
+  # set :disqus_id, "gov20wiki"
+  # DISQUS_ID = 'gov20wiki'
+
   set :public, "#{dir}/public"
   set :static, true
+
   set :mustache, {
     :templates => "#{dir}/templates",
     :views => "#{dir}/views"
@@ -28,9 +42,63 @@ class App < Sinatra::Base
     set :clean_trace, false
   end
 
+  # helpers do
+  #   def authenticated?
+  #     !!session[:author]
+  #   end
+  # end
+
+  helpers do
+    # Not used yet
+    def login_required
+      if session[:author]
+        return true
+      else
+        session[:return_to] = request.fullpath
+        redirect '/login'
+        return false
+      end
+    end
+  end
+    
+  before do
+    @author = session[:author] ? Hashie::Mash[session[:author]] : nil
+  end
+
   get '/' do
     show_page_or_file('Home')
   end
+
+  get '/login' do
+    mustache :login
+  end
+
+  post '/login' do
+    if resp = request.env["rack.openid.response"]
+      if resp.status == :success
+        sreg = OpenID::SReg::Response.from_success_response(resp)
+        session[:author] = {
+          :name => sreg.data["fullname"] || sreg.data["nickname"],
+          :email => sreg.data["email"]
+        }
+        redirect '/' #session[:return_to]
+      else
+        "Error: #{resp.status}"
+      end
+    else
+      headers 'WWW-Authenticate' => Rack::OpenID.build_header(
+        :identifier => params["openid_identifier"], 
+        :required => [:nickname, :email],
+        :optional => :fullname
+      )
+      throw :halt, [401, 'got openid?']
+    end
+  end
+  
+  get '/logout' do
+    session.delete(:author)
+    redirect '/'
+  end  
 
   get '/edit/:name' do
     @name = params[:name]
@@ -98,13 +166,18 @@ class App < Sinatra::Base
         @versions.first]
     end
   end
+  
+  # "\353\202\264\354\235\274-\355\225\264\354\225\274\355\225\240-\354\213\234\353\217\204\353\223\244"
+  # "\353\202\264\354\235\274-\355\225\264\354\225\274\355\225\240-\354\213\234\353\217\204\353\223\244"
+  # {"name"=>"Home", "version_list"=>"f000bfbba7f13be1aa1b36a81f94b7b14b799542...ecfee441c5e2fc679dacd59fbc7d3ce051d73fd6"}
 
   get '/compare/:name/:version_list' do
     @name     = params[:name]
     @versions = params[:version_list].split(/\.{2,3}/)
     wiki      = Gollum::Wiki.new(settings.repo_path)
     @page     = wiki.page(@name)
-    diffs     = wiki.repo.diff(@versions.first, @versions.last, @page.path)
+    # diffs     = wiki.repo.diff(@versions.first, @versions.last, @page.path) # Not working with multibyte name
+    diffs     = wiki.repo.diff(@versions.first, @versions.last)
     @diff     = diffs.first
     mustache :compare
   end
@@ -142,8 +215,12 @@ class App < Sinatra::Base
   end
 
   def commit_message
-    { :message => params[:message],
-      :name    => `git config --get user.name `.strip,
-      :email   => `git config --get user.email`.strip }
+    { :message => params[:message], 
+      :name => @author ? @author.name : (params[:author_name] ? params[:author_name].strip : '(anonymous)'),
+      :email => @author ? @author.email : (params[:author_email] ? params[:author_name].strip : 'anon@anon.com')
+    }
+    # { :message => params[:message],
+    #   :name    => `git config --get user.name `.strip,
+    #   :email   => `git config --get user.email`.strip }
   end
 end

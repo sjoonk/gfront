@@ -29,17 +29,14 @@
 					<h1 id="logo">
 						<a href="/">gfront Wiki</a>
 					</h1>
-					<div id="login">
-						<form>
-							<input type="text" /> <input type="submit" value="로그인" />
-						</form>	
-					</div>	
+					{{>login}}
 				</div>	
         <div id="guides">
           {{{yield}}}
         </div>
 				<div id="footer">
-					&copy; Your Copyright Information.
+					&copy; Your Copyright Information. 
+					<em>Powered by <strong><a href="http://github.com/sjoonk/gfront">gfront</a></strong></em>
 				</div>	
       </div>
     </div>

@@ -18,7 +18,7 @@ class App
             :author   => v.author.name,
             :message  => v.message,
             :date     => v.committed_date.strftime("%B %d, %Y"),
-            :gravatar => Digest::MD5.hexdigest(v.author.email) }
+            :gravatar => (v.author.email ? Digest::MD5.hexdigest(v.author.email) : '') }
         end
       end
 

@@ -33,6 +33,11 @@ class App
         @footer ||= @page.footer
         @footer.format.to_s
       end
+      
+      def disqus_id
+        'dummy'
+        # settings.disqus_id
+      end
     end
   end
 end

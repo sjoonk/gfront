@@ -1,0 +1,20 @@
+<h1>Login</h1>
+<p>
+	You can use OpenID to access this wiki.
+</p>
+<form action="/login" method="post">
+  <label for="openid_identifier">OpenID:</label>
+	<input id="openid_identifier" name="openid_identifier" type="text" />
+  <input name="commit" type="submit" value="Sign in" />
+</form>	
+	
+<p>
+	Or just fill in minimum personal info.
+</p>
+<form action="login" method="post">
+	Name: <input type="text" name="name" />
+	Email: <input type="text" name="email" />
+	<p>
+  	<input name="commit" type="submit" value="Sign in" />	
+	</p>	
+</form>		

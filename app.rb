@@ -1,14 +1,27 @@
-require 'rubygems'
 require 'sinatra/base'
 require 'gollum'
-require 'mustache/sinatra'
+# require 'mustache/sinatra'
 require 'rack/openid'
 require 'hashie/mash'
+require 'lib/helper'
+require 'lib/auth_helper'
+require 'lib/page_helper'
+# require 'lib/open_id_auth'
 
 class App < Sinatra::Base
-  register Mustache::Sinatra
-  require 'views/layout'
-  require 'views/editable'
+
+  # Set your own git repository path and disqus_id here
+  # set :repo_path, "YOUR_REPO_PATH" 
+  set :repo_path, "/Users/coti22/Wikis/my-gollum-repo"
+  set :disqus_id, "gov20wiki"
+
+  # register Mustache::Sinatra
+  # require 'views/layout'
+  # require 'views/editable'
+  # set :mustache, {
+  #   :templates => "#{dir}/templates",
+  #   :views => "#{dir}/views"
+  # }
 
   # If you need to set additional parameters for sessions, like expiration date, 
   # use Rack::Session::Cookie directly instead of enable :sessions
@@ -20,19 +33,8 @@ class App < Sinatra::Base
 
   dir = File.dirname(File.expand_path(__FILE__))
 
-  # Set your own git repository path here
-  # set :repo_path, "YOUR_REPO_PATH" 
-  set :repo_path, "/Users/coti22/Wikis/my-gollum-repo"
-  # set :disqus_id, "gov20wiki"
-  # DISQUS_ID = 'gov20wiki'
-
   set :public, "#{dir}/public"
-  set :static, true
-
-  set :mustache, {
-    :templates => "#{dir}/templates",
-    :views => "#{dir}/views"
-  }
+  enable :static # syntactic sugar of set :static, true
 
   # Sinatra error handling
   configure :development, :staging do
@@ -42,25 +44,8 @@ class App < Sinatra::Base
     set :clean_trace, false
   end
 
-  # helpers do
-  #   def authenticated?
-  #     !!session[:author]
-  #   end
-  # end
+  helpers Helper, AuthHelper, PageHelper
 
-  helpers do
-    # Not used yet
-    def login_required
-      if session[:author]
-        return true
-      else
-        session[:return_to] = request.fullpath
-        redirect '/login'
-        return false
-      end
-    end
-  end
-    
   before do
     @author = session[:author] ? Hashie::Mash[session[:author]] : nil
   end
@@ -69,8 +54,19 @@ class App < Sinatra::Base
     show_page_or_file('Home')
   end
 
+
   get '/login' do
-    mustache :login
+    erb :login
+  end
+
+  post '/login' do
+    # TODO: validation and refactoring
+    pass if params[:openid_identifier]
+    session[:author] = {
+      :name => params[:name],
+      :email => params[:email]
+    }
+    redirect session[:return_to]
   end
 
   post '/login' do
@@ -81,7 +77,7 @@ class App < Sinatra::Base
           :name => sreg.data["fullname"] || sreg.data["nickname"],
           :email => sreg.data["email"]
         }
-        redirect '/' #session[:return_to]
+        redirect session[:return_to]
       else
         "Error: #{resp.status}"
       end
@@ -101,41 +97,43 @@ class App < Sinatra::Base
   end  
 
   get '/edit/:name' do
+    login_required
     @name = params[:name]
     wiki = Gollum::Wiki.new(settings.repo_path)
     if page = wiki.page(@name)
       @page = page
       @content = page.raw_data
-      mustache :edit
+      @formats = formats
+      erb :edit
     else
-      mustache :create
+      @formats = formats(:markdown)
+      raise @formats.inspect
+      erb :create
     end
   end
 
   post '/edit/:name' do
+    login_required
     name   = params[:name]
     wiki   = Gollum::Wiki.new(settings.repo_path)
     page   = wiki.page(name)
     format = params[:format].intern
     name   = params[:rename] if params[:rename]
-
     wiki.update_page(page, name, format, params[:content], commit_message)
-
     redirect "/#{Gollum::Page.cname name}"
   end
 
   post '/create/:name' do
+    login_required
     name = params[:page]
     wiki = Gollum::Wiki.new(settings.repo_path)
-
     format = params[:format].intern
-
     begin
       wiki.write_page(name, format, params[:content], commit_message)
       redirect "/#{name}"
     rescue Gollum::DuplicatePageError => e
       @message = "Duplicate page: #{e.message}"
-      mustache :error
+      erb :error
     end
   end
 
@@ -152,7 +150,7 @@ class App < Sinatra::Base
     @page     = wiki.page(@name)
     @page_num = [params[:page].to_i, 1].max
     @versions = @page.versions :page => @page_num
-    mustache :history
+    erb :history
   end
 
   post '/compare/:name' do
@@ -166,10 +164,6 @@ class App < Sinatra::Base
         @versions.first]
     end
   end
-  
-  # "\353\202\264\354\235\274-\355\225\264\354\225\274\355\225\240-\354\213\234\353\217\204\353\223\244"
-  # "\353\202\264\354\235\274-\355\225\264\354\225\274\355\225\240-\354\213\234\353\217\204\353\223\244"
-  # {"name"=>"Home", "version_list"=>"f000bfbba7f13be1aa1b36a81f94b7b14b799542...ecfee441c5e2fc679dacd59fbc7d3ce051d73fd6"}
 
   get '/compare/:name/:version_list' do
     @name     = params[:name]
@@ -179,7 +173,7 @@ class App < Sinatra::Base
     # diffs     = wiki.repo.diff(@versions.first, @versions.last, @page.path) # Not working with multibyte name
     diffs     = wiki.repo.diff(@versions.first, @versions.last)
     @diff     = diffs.first
-    mustache :compare
+    erb :compare
   end
 
   get %r{/(.+?)/([0-9a-f]{40})} do
@@ -189,7 +183,7 @@ class App < Sinatra::Base
       @page = page
       @name = name
       @content = page.formatted_data
-      mustache :page
+      erb :page
     else
       halt 404
     end
@@ -205,12 +199,13 @@ class App < Sinatra::Base
       @page = page
       @name = name
       @content = page.formatted_data
-      mustache :page
+      erb :page
     elsif file = wiki.file(name)
       file.raw_data
     else
       @name = name
-      mustache :create
+      @formats = formats(:markdown)
+      erb :create
     end
   end
 

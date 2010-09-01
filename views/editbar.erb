@@ -21,9 +21,9 @@
       <span class="tab format">
         Format:
         <select id="wiki_format" name="format">
-          {{#formats}}
-            <option {{#selected}}selected="true" {{/selected}}value="{{id}}">{{name}}</option>
-          {{/formats}}
+					<% @formats.each do |format| %>
+            <option <%= 'selected="true"' if format[:selected] %> value="<%= format[:id] %>"><%= format[:name] %></option>
+					<% end %>	
         </select>
       </span>
     </div>

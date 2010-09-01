@@ -55,6 +55,8 @@ abbr {
 * html .clearfix {height: 1%;}
 .clearfix {display:inline-block;}
 .clearfix {display: block;}
+.showgrid { background-color: pink; }
+
 
 /* always show vertical scroll bar to prevent page jitter */
 html {overflow-y: scroll;}
@@ -71,11 +73,18 @@ html {overflow-y: scroll;}
 	position: relative;
 }
 
-#login {
+#search {
+	position: absolute;
+	right: 0;
+	top: 10px;
+}
+
+/*#login {
 	position: absolute;
 	top: 0;
 	right: 0;
 }
+*/
 
 h1, h2, h3, h4, h5 { position: relative;}
 a.toc-top-link {

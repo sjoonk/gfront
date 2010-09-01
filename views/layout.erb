@@ -3,11 +3,12 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>{{title}}</title>
+    <title><%= @title || 'gFront Wiki' %></title>
     <link rel="stylesheet" href="/css/screen.css" type="text/css" charset="utf-8" />
     <link rel="stylesheet" href="/css/gollum.css" type="text/css" charset="utf-8" />
     <link rel="stylesheet" href="/css/syntax.css" type="text/css" charset="utf-8" />
     <link rel="stylesheet" href="/css/editbar.css" type="text/css" charset="utf-8" />
+    <link rel="stylesheet" href="/css/tabs.css" type="text/css" charset="utf-8" />
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script>
     <script src="/javascript/jquery.tableofcontents.min.js" type="text/javascript"></script>
     <script src="/javascript/jquery.text_selection-1.0.0.min.js" type="text/javascript"></script>
@@ -29,10 +30,28 @@
 					<h1 id="logo">
 						<a href="/">gfront Wiki</a>
 					</h1>
-					{{>login}}
-				</div>	
+					<div id="search">
+						<form action="/search" method="get">
+							<input type="text" name="q" />
+							<input type="submit" value="Search" />
+						</form>	 
+					</div>	
+					<ul id="tablist">
+						<li>
+							<% if authenticated? %>
+								<%= @author.name %>(<%= @author.email %>) <a href="/logout">Logout</a>
+								<!-- <img src="http://www.gravatar.com/avatar/{{gravatar}}?s=20" alt="Gravatar" /> -->
+							<% else %>	
+								<a class="current" href="/login">Login</a>
+							<% end %>
+						</li>
+						<li><a href="/">All Pages</a></li>
+						<!-- <li><a href="/">Create New Page</a></li> -->
+					</ul>
+					<%#= partial :login %>
+				</div>
         <div id="guides">
-          {{{yield}}}
+					<%= yield %>
         </div>
 				<div id="footer">
 					&copy; Your Copyright Information. 

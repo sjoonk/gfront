@@ -1,0 +1,37 @@
+<div class="guide">
+  <div class="main">
+    <div class="actions">
+      <a href="/<%= @name %>">&laquo; Back</a>
+    </div>
+    <h1>History of <%= @page.title %></h1>
+    <form id="history" method="post" action="/compare/<%= @name %>">
+      <table class="commits" cellpadding="0" cellspacing="0">
+        <tr>
+          <th colspan="5">
+            Select any two versions to <input type="submit" value="Compare" />
+          </th>
+        </tr>
+				<% versions.each do |version| %>
+          <tr class="commit">
+            <td class="checkbox">
+              <input name="versions[]" type="checkbox" value="<%= version[:id] %>" />
+            </td>
+            <td class="sha">
+              <a href="/<%= @name %>/<%= version[:id] %>"><%= version[:id7] %></a>
+            </td>
+            <td nowrap class="author">
+              <img src="http://www.gravatar.com/avatar/<%= version[:gravatar] %>?s=16" alt="Gravatar" />
+              <%= version[:author] %>
+            </td>
+            <td class="message"><%= version[:message] %></td>
+            <td nowrap class="date"><%= version[:date] %></td>
+          </tr>
+				<% end %>	
+      </table>
+      <div class="pagination">
+				<%= previous_link %>
+				<%= next_link %>
+      </div>
+    </form>
+  </div>
+</div>

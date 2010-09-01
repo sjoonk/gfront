@@ -2,7 +2,7 @@ gfront is a frontend app for gollum, a git based ruby wiki library. It basically
 
 * TOC(Table of Contents) support
 * DISQUS comments system
-* OpenId login (todo)
+* OpenId login support
 * I18n (todo)
 
 ### Installation
@@ -12,9 +12,11 @@ gfront is a frontend app for gollum, a git based ruby wiki library. It basically
 
 ### Configuration
 
-Edit app.rb and change repo_path to your own git repository path.
+Open app.rb and edit repo_path and disqus_id as your fit.
 
 ### Run
+
+	$ rackup (http://localhost:9292)
 
 That's it.
 

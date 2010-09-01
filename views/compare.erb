@@ -1,9 +1,9 @@
 <div class="guide">
   <div class="main">
     <div class="actions">
-      <a href="/{{name}}">&laquo; Back</a>
+      <a href="/<%= @name %>">&laquo; Back</a>
     </div>
-    <h1>{{title}}: {{before}} &rarr; {{after}}</h1>
+    <h1>Comparison of <%= @page.title %>: <%= before %> &rarr; <%= after %></h1>
     <div id="files">
       <div class="file">
         <div class="meta">
@@ -11,20 +11,20 @@
             <span class="icon">
               <img alt="Txt" height="16" src="/images/txt.png" width="16">
             </span>
-            {{path}}
+						<%= @page.path %>
           </div>
         </div>
         <div class="data highlight">
           <table cellpadding="0" cellspacing="0" width="100%">
-            {{#lines}}
+						<% lines.each do |ln| %>
               <tr>
-                <td class="line_numbers">{{ldln}}</td>
-                <td class="line_numbers">{{rdln}}</td>
+                <td class="line_numbers"><%= ln[:ldln] %></td>
+                <td class="line_numbers"><%= ln[:rdln] %></td>
                 <td width="100%">
-                  <pre><div class="{{class}}">{{line}}</div></pre>
+                  <pre><div class="<%= ln[:class] %>"><%= ln[:line] %></div></pre>
                 </td>
               </tr>
-            {{/lines}}
+						<% end %>	
           </table>
         </div>
       </div>

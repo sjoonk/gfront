@@ -7,7 +7,7 @@ gfront is a frontend app for gollum, a git based ruby wiki library. It basically
 
 ### Installation
 
-	$ git clone git@github.com:sjoonk/gfront.git
+	$ git clone git://github.com/sjoonk/gfront.git
 	$ cd gfront
 
 ### Configuration
